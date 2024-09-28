@@ -1,6 +1,8 @@
 package ru.caselab;
 
-import ru.caselab.state.ShipPosition;
+import ru.caselab.enumeration.ShipPosition;
+
+import java.util.List;
 
 public class Ship {
 
@@ -8,7 +10,7 @@ public class Ship {
     private final Coordinates startCoordinates;
     private final ShipPosition shipPosition;
     private int deckLeft;
-    private Coordinates[] coordinates;
+    private List<Cell> cells;
 
 
     public Ship(int size, Coordinates startCoordinates, ShipPosition shipPosition) {
@@ -22,8 +24,8 @@ public class Ship {
         this.deckLeft = deckLeft;
     }
 
-    public void setCoordinates(Coordinates[] coordinates) {
-        this.coordinates = coordinates;
+    public void setCells(List<Cell> cells) {
+        this.cells = cells;
     }
 
     public int getSize() {
@@ -34,15 +36,15 @@ public class Ship {
         return deckLeft;
     }
 
-    public Coordinates[] getCoordinates() {
-        return coordinates;
-    }
-
     public Coordinates getStartCoordinates() {
         return startCoordinates;
     }
 
     public ShipPosition getShipPosition() {
         return shipPosition;
+    }
+
+    public List<Cell> getCells() {
+        return cells;
     }
 }

@@ -1,6 +1,6 @@
 package ru.caselab;
 
-import ru.caselab.state.CellState;
+import ru.caselab.enumeration.CellState;
 
 public class Field {
 

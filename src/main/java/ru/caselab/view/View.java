@@ -14,6 +14,8 @@ public interface View {
 
     void renderMove(Player currentPlayer, Player enemy);
 
+    void renderWrongMove();
+
     void renderMoveResult(Player currentPlayer, Player enemy, Coordinates moveCoordinates);
 
     void renderWinner(Player player);

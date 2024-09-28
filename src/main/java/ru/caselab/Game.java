@@ -1,17 +1,18 @@
 package ru.caselab;
 
+import ru.caselab.player.Human;
 import ru.caselab.player.Player;
-import ru.caselab.state.CellState;
-import ru.caselab.state.GameState;
+import ru.caselab.enumeration.CellState;
+import ru.caselab.enumeration.GameState;
 import ru.caselab.view.View;
 
 public class Game {
 
     private GameState gameState;
-    private Player player1;
-    private Player player2;
+    private final Player player1;
+    private final Player player2;
     private Player winner;
-    private View view;
+    private final View view;
 
     public Game(Player player1, Player player2, View view) {
         gameState = GameState.IN_PROCESS;
@@ -21,20 +22,22 @@ public class Game {
     }
 
     public void play() {
-        player1.prepare();
         view.renderPlayer(player1);
-
-        player2.prepare();
         view.renderPlayer(player2);
-
         start();
     }
 
     private void start() {
-        player1.placeShips();
-        player2.placeShips();
-
+        placeShipsAndRender(player1);
+        placeShipsAndRender(player2);
         inProcess();
+    }
+
+    private void placeShipsAndRender(Player player) {
+        player.placeShips();
+        if (player instanceof Human) {
+            view.renderPlayerField(player.getField());
+        }
     }
 
     private void inProcess() {
@@ -44,9 +47,8 @@ public class Game {
         while (gameState != GameState.END) {
             view.renderMove(currentPlayer, enemy);
 
-            Coordinates moveCoordinates = currentPlayer.makeMove();
+            Coordinates moveCoordinates = requestValidMove(currentPlayer, enemy);
             boolean isHit = processMove(enemy.getField(), moveCoordinates);
-
             view.renderMoveResult(currentPlayer, enemy, moveCoordinates);
 
             if (isHit && enemy.getField().getShipsLeft() == 0) {
@@ -55,39 +57,60 @@ public class Game {
             }
 
             if (!isHit) {
-                currentPlayer = currentPlayer.equals(player1) ? player2 : player1;
-                enemy = enemy.equals(player1) ? player2 : player1;
+                Player temp = currentPlayer;
+                currentPlayer = enemy;
+                enemy = temp;
             }
         }
         end();
     }
 
+    private Coordinates requestValidMove(Player currentPlayer, Player enemy) {
+        Coordinates moveCoordinates = currentPlayer.makeMove();
+
+        while (!checkMove(enemy.getField(), moveCoordinates)) {
+            view.renderWrongMove();
+            moveCoordinates = currentPlayer.makeMove();
+        }
+
+        return moveCoordinates;
+    }
+
+    private boolean checkMove(Field field, Coordinates moveCoordinates) {
+        CellState cellState = field.getCells()[moveCoordinates.x()][moveCoordinates.y()].getCellState();
+        return cellState == CellState.SHIP || cellState == CellState.EMPTY;
+    }
+
     private boolean processMove(Field field, Coordinates moveCoordinates) {
-        Cell cell = field.getCells()[moveCoordinates.getX()][moveCoordinates.getY()];
+        Cell cell = field.getCells()[moveCoordinates.x()][moveCoordinates.y()];
 
-        if (cell.getCellState() == CellState.SHIP) {
-            Ship ship = cell.getShip();
-            ship.setDeckLeft(ship.getDeckLeft() - 1);
-
-            if (ship.getDeckLeft() > 0) {
-                cell.setCellState(CellState.WOUNDED);
-
-            } else {
-                Coordinates[] shipCoordinates = ship.getCoordinates();
-                for (Coordinates coordinates : shipCoordinates) {
-                    field.getCells()[coordinates.getX()][coordinates.getY()].setCellState(CellState.DEAD);
-                }
-                field.setShipsLeft(field.getShipsLeft() - 1);
+        return switch (cell.getCellState()) {
+            case SHIP -> handleHit(cell, field);
+            case EMPTY -> {
+                cell.setCellState(CellState.MISS);
+                yield false;
             }
-            return true;
-        }
+            default -> false;
+        };
+    }
 
-        if (cell.getCellState() == CellState.EMPTY) {
-            cell.setCellState(CellState.MISS);
-            return false;
-        }
+    private boolean handleHit(Cell cell, Field field) {
+        Ship ship = cell.getShip();
+        ship.setDeckLeft(ship.getDeckLeft() - 1);
 
-        return false;
+        if (ship.getDeckLeft() > 0) {
+            cell.setCellState(CellState.WOUNDED);
+        } else {
+            sinkShip(ship, field);
+        }
+        return true;
+    }
+
+    private void sinkShip(Ship ship, Field field) {
+        for (Cell shipCell : ship.getCells()) {
+            shipCell.setCellState(CellState.DEAD);
+        }
+        field.setShipsLeft(field.getShipsLeft() - 1);
     }
 
     private void end() {
