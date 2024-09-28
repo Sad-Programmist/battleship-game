@@ -26,6 +26,7 @@ public class ConsoleView implements View {
             }
             System.out.println();
         }
+        System.out.println();
     }
 
     @Override
@@ -46,16 +47,17 @@ public class ConsoleView implements View {
             }
             System.out.println();
         }
+        System.out.println();
     }
 
     @Override
     public void renderPlayer(Player player) {
-        System.out.println("Player's name: " + player.getName());
+        System.out.printf("Player's name: %s%n%n", player.getName());
     }
 
     @Override
     public void renderMove(Player currentPlayer, Player enemy) {
-        System.out.println("Now " + currentPlayer.getName() + "'s move");
+        System.out.printf("Now %s's move", currentPlayer.getName());
 
         if (currentPlayer instanceof Human) {
             renderPlayerField(currentPlayer.getField());
@@ -64,16 +66,29 @@ public class ConsoleView implements View {
     }
 
     @Override
+    public void renderWrongMove() {
+        System.out.println("Choose another coordinates\n");
+    }
+
+    @Override
     public void renderMoveResult(Player currentPlayer, Player enemy, Coordinates moveCoordinates) {
-        System.out.println("Player " + currentPlayer.getName() + " made move " + (char) ('A' +
-                moveCoordinates.getX()) + (moveCoordinates.getY() + 1));
-        System.out.println(enemy.getField().getCells()[moveCoordinates.getX()][moveCoordinates.getY()].getCellState().name());
+        String movePosition = getMovePosition(moveCoordinates);
+        String cellState = enemy.getField().getCells()[moveCoordinates.x()][moveCoordinates.y()].getCellState().name();
+
+        System.out.printf("Player %s made move %s%n", currentPlayer.getName(), movePosition);
+        System.out.println(cellState + "\n");
         System.out.println("Move result");
         renderEnemyField(enemy.getField());
     }
 
+    private String getMovePosition(Coordinates moveCoordinates) {
+        char column = (char) ('A' + moveCoordinates.x());
+        int row = moveCoordinates.y() + 1;
+        return String.valueOf(column) + row;
+    }
+
     @Override
     public void renderWinner(Player player) {
-        System.out.println("Winner is " + player.getName());
+        System.out.printf("Winner is %s%n", player.getName());
     }
 }

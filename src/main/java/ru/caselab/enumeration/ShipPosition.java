@@ -1,4 +1,4 @@
-package ru.caselab.state;
+package ru.caselab.enumeration;
 
 public enum ShipPosition {
 

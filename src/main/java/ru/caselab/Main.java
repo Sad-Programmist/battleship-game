@@ -10,7 +10,7 @@ public class Main {
     public static void main(String[] args) {
         Player player1 = new Computer("Computer 1");
         //Player player2 = new Computer("Computer 2");
-        Player player2 = new Human(new HumanConsoleController());
+        Player player2 = new Human("Bob", new HumanConsoleController());
 
         Game game = new Game(player1, player2, new ConsoleView());
         game.play();

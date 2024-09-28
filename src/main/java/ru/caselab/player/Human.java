@@ -1,32 +1,34 @@
 package ru.caselab.player;
 
 import ru.caselab.Coordinates;
-import ru.caselab.Field;
-import ru.caselab.Placer;
 import ru.caselab.Ship;
 import ru.caselab.controller.HumanController;
 
-import java.util.List;
-
 public class Human extends Player {
 
-    private HumanController humanController;
+    private final HumanController humanController;
 
-    public Human(HumanController humanController) {
+    public Human(String name, HumanController humanController) {
+        super(name);
         this.humanController = humanController;
-        placer = new Placer();
-        field = new Field();
-    }
-
-    @Override
-    public void prepare() {
-        name = humanController.requestName();
     }
 
     @Override
     public void placeShips() {
-        List<Ship> ships = humanController.requestPlacingShips();
-        placer.manualPlace(ships, field);
+        if (humanController.requestAutoPlacing()) {
+            placer.autoPlaceShips(field);
+            return;
+        }
+
+        int[] shipSizes = {4, 3, 3, 2, 2, 2, 1, 1, 1, 1};
+        for (int shipSize : shipSizes) {
+                Ship ship = humanController.requestPlacingShip(shipSize);
+                while (!placer.manualPlace(ship, field)) {
+                    humanController.showError("Ship cannot go outside the field, overlap, or touch another ship");
+                    ship = humanController.requestPlacingShip(shipSize);
+                }
+
+        }
     }
 
     @Override
